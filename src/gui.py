@@ -2,7 +2,7 @@ import getpass
 import socket
 import tkinter as tk
 from parser import pars_command
-from src.commands import COMMANDS
+from commands import COMMANDS
 
 
 class TerminalApp(tk.Tk):

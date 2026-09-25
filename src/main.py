@@ -1,4 +1,4 @@
-from  src.gui import TerminalApp
+from gui import TerminalApp
 
 if __name__ == "__main__":
     app = TerminalApp()
