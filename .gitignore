@@ -1,0 +1,38 @@
+# Виртуальное окружение
+.venv/
+venv/
+ENV/
+env/
+
+# Байткод и кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Конфиденциальные данные и переменные окружения
+.env
+*.env
+secrets/
+
+# Служебные файлы macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Настройки IDE и редакторов
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Сборка, дистрибуция и логи
+dist/
+build/
+*.egg-info/
+*.loge
+
+# Игнорировать личный файл для набросков
+test.py
