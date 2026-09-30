@@ -36,3 +36,6 @@ build/
 
 # Игнорировать личный файл для набросков
 test.py
+
+#claude.md
+claude.md
