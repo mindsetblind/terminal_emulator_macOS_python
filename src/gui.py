@@ -6,10 +6,13 @@ from commands import COMMANDS
 
 
 class TerminalApp(tk.Tk):
-    def __init__(self):
+    def __init__(self, vfs_path=None, script_path=None):
         super().__init__()
         username = getpass.getuser()
         hostname = socket.gethostname()
+        
+        self.vfs_path = vfs_path
+        self.script_path = script_path
 
 
         self.title(f"Эмулятор - [{username}@{hostname}]")
@@ -33,6 +36,9 @@ class TerminalApp(tk.Tk):
         self.output.grid(row=0, column=0,columnspan=2, sticky="nsew",
                          padx = 20, pady= 20)
         self.output.config(state="disabled")
+
+        self._write_output(f"[debug] VFS: {self.vfs_path}")
+        self._write_output(f"[debug] Стартовый скрипт: {self.script_path}")
 
 
 
@@ -87,6 +93,7 @@ class TerminalApp(tk.Tk):
             self._write_output("Ошибка: команда не найдена")
 
         self.command_entry.delete(0, tk.END)
+
 
 
 
