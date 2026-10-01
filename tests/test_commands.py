@@ -2,7 +2,7 @@ import unittest
 from src.commands import (
     pr_text,
     clear,
-    help,
+    cmd_help,
     chng_dir,
     cmd_list,
 )
@@ -23,8 +23,7 @@ class TestCommands(unittest.TestCase):
         self.assertEqual(result, "")
 
     def test_help_lists_all_commands(self):
-        result = help([])
-        # help должен вернуть строку, содержащую все ключи COMMANDS
+        result = cmd_help([])
         self.assertIn("ls", result)
         self.assertIn("cd", result)
         self.assertIn("exit", result)
