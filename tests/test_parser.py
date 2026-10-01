@@ -14,11 +14,13 @@ class TestParser(unittest.TestCase):
 
     def test_multiple_args_without_quotes(self):
         result = pars_command("cd My Folder")
-        self.assertEqual(result, ParsedCommand(command="cd", args=["My", "Folder"]))
+        self.assertEqual(result,
+                         ParsedCommand(command="cd", args=["My", "Folder"]))
 
     def test_quoted_argument_kept_as_one(self):
         result = pars_command('cd "My Folder"')
-        self.assertEqual(result, ParsedCommand(command="cd", args=["My Folder"]))
+        self.assertEqual(result,
+                         ParsedCommand(command="cd", args=["My Folder"]))
 
     def test_empty_input_returns_none(self):
         result = pars_command("")
@@ -31,6 +33,18 @@ class TestParser(unittest.TestCase):
     def test_unclosed_quote_raises_value_error(self):
         with self.assertRaises(ValueError):
             pars_command('cd "test')
+
+    def test_inline_comment_is_ignored(self):
+        result = pars_command("ls -la # комментарий")
+        self.assertEqual(result, ParsedCommand(command="ls", args=["-la"]))
+
+    def test_comment_only_returns_none(self):
+        result = pars_command("# только комментарий")
+        self.assertIsNone(result)
+
+    def test_hash_inside_quotes_is_kept(self):
+        result = pars_command('echo "a # b"')
+        self.assertEqual(result, ParsedCommand(command="echo", args=["a # b"]))
 
 
 if __name__ == "__main__":
