@@ -60,39 +60,44 @@ class TerminalApp(tk.Tk):
 
 
     def on_enter(self, event=None):
-        raw_text = self.command_entry.get()
+        """Выполняет команду из поля ввода."""
+        self.execute_command(self.command_entry.get())
+        self.command_entry.delete(0, tk.END)
+
+
+    def execute_command(self, raw_text: str) -> bool:
+        """Выполняет одну команду, возвращает False при ошибке."""
         try:
             parsed_command = pars_command(raw_text)
         except ValueError:
+            self._write_output(f"> {raw_text}")
             self._write_output("Ошибка: незакрытые кавычки")
-            return None
+            return False
 
         if parsed_command is None:
-            return None
+            return True
         self._write_output(f"> {raw_text}")
         command = parsed_command.command
         args = parsed_command.args
 
-        if command in COMMANDS:
-            if command == "clear":
-                self.output.config(state="normal")
-                self.output.delete("1.0", tk.END)
-                self.output.config(state="disabled")
-            elif command == "help":
-                self._write_output(f"Список доступных "
-                                   f"команд: {COMMANDS[command](args)}")
-            elif command == "exit":
-                self._write_output("Завершение сессии...")
-                self.update_idletasks()
-                self.after(1000, self.destroy)
-            else:
-                self._write_output(COMMANDS[command](args))
-
-
-        else:
+        if command not in COMMANDS:
             self._write_output("Ошибка: команда не найдена")
+            return False
 
-        self.command_entry.delete(0, tk.END)
+        if command == "clear":
+            self.output.config(state="normal")
+            self.output.delete("1.0", tk.END)
+            self.output.config(state="disabled")
+        elif command == "help":
+            self._write_output(f"Список доступных "
+                               f"команд: {COMMANDS[command](args)}")
+        elif command == "exit":
+            self._write_output("Завершение сессии...")
+            self.update_idletasks()
+            self.after(1000, self.destroy)
+        else:
+            self._write_output(COMMANDS[command](args))
+        return True
 
 
 
