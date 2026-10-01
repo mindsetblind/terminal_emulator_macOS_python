@@ -3,6 +3,7 @@ import socket
 import tkinter as tk
 from parser import pars_command
 from commands import COMMANDS
+from script import load_script
 
 
 class TerminalApp(tk.Tk):
@@ -45,6 +46,8 @@ class TerminalApp(tk.Tk):
         self.button = tk.Button(self, text="Выполнить",
                                 command=self.on_enter)
         self.button.grid(row=1, column=1, padx=20, pady=20)
+
+        self.after(100, self.run_script)
 
 
 
@@ -98,6 +101,25 @@ class TerminalApp(tk.Tk):
         else:
             self._write_output(COMMANDS[command](args))
         return True
+
+
+    def run_script(self):
+        """Выполняет команды стартового скрипта до первой ошибки."""
+        if self.script_path is None:
+            return
+        try:
+            lines = load_script(self.script_path)
+        except OSError:
+            self._write_output(f"Ошибка: не удалось открыть стартовый "
+                               f"скрипт {self.script_path}")
+            return
+
+        for number, line in lines:
+            ok = self.execute_command(line)
+            if not ok:
+                self._write_output(f"Скрипт остановлен: ошибка "
+                                   f"в строке {number}")
+                return
 
 
 
