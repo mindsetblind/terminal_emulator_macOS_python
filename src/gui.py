@@ -7,31 +7,29 @@ from script import load_script
 
 
 class TerminalApp(tk.Tk):
+    """Окно эмулятора терминала."""
+
     def __init__(self, vfs_path=None, script_path=None):
+        """Создаёт окно и запоминает параметры запуска."""
         super().__init__()
         username = getpass.getuser()
         hostname = socket.gethostname()
-        
+
         self.vfs_path = vfs_path
         self.script_path = script_path
-
 
         self.title(f"Эмулятор - [{username}@{hostname}]")
         self.geometry("1000x700")
         self.configure(bg="#000000")
 
-
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-
 
         self.command_entry = tk.Entry(self, font=("Menlo", 12))
         self.command_entry.grid(row=1, column=0, sticky="ew",
                                 padx=20, pady=20)
         self.command_entry.bind("<Return>", self.on_enter)
         self.command_entry.bind("<Command-a>", self._select_all)
-
-
 
         self.output = tk.Text(self, font=("Menlo", 12))
         self.output.grid(row=0, column=0,columnspan=2, sticky="nsew",
@@ -41,23 +39,20 @@ class TerminalApp(tk.Tk):
         self._write_output(f"[debug] VFS: {self.vfs_path}")
         self._write_output(f"[debug] Стартовый скрипт: {self.script_path}")
 
-
-
         self.button = tk.Button(self, text="Выполнить",
                                 command=self.on_enter)
         self.button.grid(row=1, column=1, padx=20, pady=20)
 
         self.after(100, self.run_script)
 
-
-
-
     def _write_output(self, text):
+        """Добавляет строку в поле вывода."""
         self.output.config(state="normal")
         self.output.insert(tk.END, f"{text}\n")
         self.output.config(state="disabled")
 
     def _select_all(self, event=None):
+        """Выделяет весь текст в поле ввода."""
         self.command_entry.select_range(0, tk.END)
         return "break"
 
@@ -119,6 +114,8 @@ class TerminalApp(tk.Tk):
             if not ok:
                 self._write_output(f"Скрипт остановлен: ошибка "
                                    f"в строке {number}")
+                return
+            if line.split()[0] == "exit":
                 return
 
 
