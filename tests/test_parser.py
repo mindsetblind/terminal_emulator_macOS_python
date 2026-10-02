@@ -36,7 +36,8 @@ class TestParser(unittest.TestCase):
 
     def test_inline_comment_is_ignored(self):
         result = pars_command("ls -la # комментарий")
-        self.assertEqual(result, ParsedCommand(command="ls", args=["-la"]))
+        self.assertEqual(result, ParsedCommand(command="ls",
+                                               args=["-la"]))
 
     def test_comment_only_returns_none(self):
         result = pars_command("# только комментарий")
@@ -44,7 +45,8 @@ class TestParser(unittest.TestCase):
 
     def test_hash_inside_quotes_is_kept(self):
         result = pars_command('echo "a # b"')
-        self.assertEqual(result, ParsedCommand(command="echo", args=["a # b"]))
+        self.assertEqual(result, ParsedCommand(command="echo",
+                                               args=["a # b"]))
 
 
 if __name__ == "__main__":
