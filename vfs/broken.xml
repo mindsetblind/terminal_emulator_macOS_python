@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vfs>
+  <dir name="home">
+    <file name="a.txt">SGVsbG8=</file>
+</vfs>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vfs>
+  <file name="root.txt">0KPRgNC+0LLQtdC90YwgMQ==</file>
+  <dir name="home">
+    <dir name="user">
+      <file name="todo.txt">0KPRgNC+0LLQtdC90YwgMw==</file>
+      <dir name="projects">
+        <dir name="emulator">
+          <file name="main.py">cHJpbnQoJ2hlbGxvJyk=</file>
+        </dir>
+      </dir>
+    </dir>
+  </dir>
+  <dir name="etc">
+    <file name="hosts">MTI3LjAuMC4xIGxvY2FsaG9zdA==</file>
+  </dir>
+  <dir name="tmp"/>
+</vfs>
