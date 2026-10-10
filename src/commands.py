@@ -30,5 +30,11 @@ def cmd_exit(args: list[str]) -> str:
     return ""
 
 
+def cmd_vfs_save(args: list[str]) -> str:
+    """Заглушка: сохранение VFS выполняет gui."""
+    return ""
+
+
 COMMANDS = {"echo": pr_text, "clear": clear, "help": cmd_help,
-            "cd": chng_dir, "ls": cmd_list, "exit": cmd_exit}
+            "cd": chng_dir, "ls": cmd_list, "exit": cmd_exit,
+            "vfs-save": cmd_vfs_save}
