@@ -131,3 +131,57 @@ def tree_lines(directory: VFSDir, prefix: str = "") -> list[str]:
         else:
             lines.append(f"{prefix}{branch}{node.name}")
     return lines
+
+
+def resolve_path(cwd: list[str], target: str) -> list[str]:
+    """Переводит путь относительно текущей папки в список имён от корня."""
+    parts = [] if target.startswith("/") else list(cwd)
+    for name in target.split("/"):
+        if name in ("", "."):
+            continue
+        if name == "..":
+            if parts:
+                parts.pop()
+        else:
+            parts.append(name)
+    return parts
+
+
+def format_path(parts: list[str]) -> str:
+    """Переводит список имён в строку пути."""
+    return "/" + "/".join(parts)
+
+
+def get_node(root: VFSDir, parts: list[str]):
+    """Находит файл или папку по пути от корня."""
+    node = root
+    for name in parts:
+        if not isinstance(node, VFSDir) or name not in node.children:
+            raise VFSError("нет такого файла или каталога")
+        node = node.children[name]
+    return node
+
+
+def list_dir(node, long_format: bool = False,
+             show_all: bool = False) -> list[str]:
+    """Возвращает строки вывода ls для файла или папки."""
+    if isinstance(node, VFSFile):
+        return [_ls_entry(node, long_format)]
+    lines = []
+    if show_all:
+        lines += [_ls_entry(VFSDir("."), long_format),
+                  _ls_entry(VFSDir(".."), long_format)]
+    for name in sorted(node.children):
+        lines.append(_ls_entry(node.children[name], long_format))
+    return lines
+
+
+def _ls_entry(node, long_format: bool) -> str:
+    """Форматирует одну строку вывода ls."""
+    if isinstance(node, VFSDir):
+        name, kind, size = f"{node.name}/", "d", "-"
+    else:
+        name, kind, size = node.name, "-", str(len(node.content))
+    if long_format:
+        return f"{kind} {size:>8} {name}"
+    return name
