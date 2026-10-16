@@ -1,0 +1,21 @@
+# Стартовый скрипт этапа 4: ls, cd, echo, whoami на VFS nested.xml
+whoami
+echo Привет, VFS!
+echo "текст   в   кавычках"  # пробелы внутри кавычек сохраняются
+ls
+ls -l
+ls -a home
+cd home/user
+ls -la
+cd projects/emulator
+ls -l main.py
+cd ../..
+ls ./projects
+cd /etc
+ls
+cd ..
+ls /home/user/todo.txt
+cd
+ls ../tmp
+cd nope
+echo эта строка не выполнится

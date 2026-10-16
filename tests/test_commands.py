@@ -1,10 +1,12 @@
+import getpass
 import unittest
 from src.commands import (
+    CommandError,
     pr_text,
     clear,
     cmd_help,
-    chng_dir,
-    cmd_list,
+    cmd_whoami,
+    parse_ls_args,
 )
 
 
@@ -28,16 +30,33 @@ class TestCommands(unittest.TestCase):
         self.assertIn("cd", result)
         self.assertIn("exit", result)
 
-    def test_chng_dir_includes_command_name_and_args(self):
-        result = chng_dir(["folder"])
-        self.assertIn("cd", result)
-        self.assertIn("folder", result)
+    def test_help_lists_new_commands(self):
+        result = cmd_help([])
+        self.assertIn("whoami", result)
+        self.assertIn("vfs-save", result)
 
-    def test_cmd_list_includes_command_name_and_args(self):
-        result = cmd_list(["-la"])
-        self.assertIn("ls", result)
-        self.assertIn("-la", result)
+    def test_whoami_returns_os_user(self):
+        self.assertEqual(cmd_whoami([]), getpass.getuser())
 
+    def test_whoami_with_args_raises(self):
+        with self.assertRaises(CommandError):
+            cmd_whoami(["root"])
+
+    def test_ls_args_default_path(self):
+        self.assertEqual(parse_ls_args([]), (set(), "."))
+
+    def test_ls_args_flags_and_path(self):
+        flags, path = parse_ls_args(["-la", "home"])
+        self.assertEqual(flags, {"l", "a"})
+        self.assertEqual(path, "home")
+
+    def test_ls_args_unknown_flag(self):
+        with self.assertRaises(CommandError):
+            parse_ls_args(["-x"])
+
+    def test_ls_args_too_many_paths(self):
+        with self.assertRaises(CommandError):
+            parse_ls_args(["a", "b"])
 
 if __name__ == "__main__":
     unittest.main()
