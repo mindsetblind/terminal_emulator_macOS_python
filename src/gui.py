@@ -2,9 +2,10 @@ import getpass
 import socket
 import tkinter as tk
 from parser import pars_command
-from commands import COMMANDS
+from commands import COMMANDS, CommandError, parse_ls_args
 from script import load_script
-from vfs import (VFSError, count_nodes, default_vfs, load_vfs, save_vfs,
+from vfs import (VFSDir, VFSError, count_nodes, default_vfs, format_path,
+                 get_node, list_dir, load_vfs, resolve_path, save_vfs,
                  tree_lines)
 
 
@@ -62,6 +63,7 @@ class TerminalApp(tk.Tk):
     def _load_vfs(self):
         """Загружает VFS из файла или создаёт VFS по умолчанию."""
         self.vfs = default_vfs()
+        self.cwd = []
         source = "по умолчанию"
         if self.vfs_path is not None:
             try:
@@ -82,16 +84,17 @@ class TerminalApp(tk.Tk):
 
     def execute_command(self, raw_text: str) -> bool:
         """Выполняет одну команду, возвращает False при ошибке."""
+        prompt = f"{format_path(self.cwd)}> {raw_text}"
         try:
             parsed_command = pars_command(raw_text)
         except ValueError:
-            self._write_output(f"> {raw_text}")
+            self._write_output(prompt)
             self._write_output("Ошибка: незакрытые кавычки")
             return False
 
         if parsed_command is None:
             return True
-        self._write_output(f"> {raw_text}")
+        self._write_output(prompt)
         command = parsed_command.command
         args = parsed_command.args
 
@@ -100,11 +103,15 @@ class TerminalApp(tk.Tk):
             return False
 
         gui_commands = {"clear": self._cmd_clear, "help": self._cmd_help,
-                        "exit": self._cmd_exit,
-                        "vfs-save": self._cmd_vfs_save}
-        if command in gui_commands:
-            return gui_commands[command](args)
-        self._write_output(COMMANDS[command](args))
+                        "exit": self._cmd_exit, "ls": self._cmd_ls,
+                        "cd": self._cmd_cd, "vfs-save": self._cmd_vfs_save}
+        try:
+            if command in gui_commands:
+                return gui_commands[command](args)
+            self._write_output(COMMANDS[command](args))
+        except CommandError as error:
+            self._write_output(f"Ошибка: {error}")
+            return False
         return True
 
     def _cmd_clear(self, args: list[str]) -> bool:
@@ -125,6 +132,33 @@ class TerminalApp(tk.Tk):
         self._write_output("Завершение сессии...")
         self.update_idletasks()
         self.after(1000, self.destroy)
+        return True
+
+    def _cmd_ls(self, args: list[str]) -> bool:
+        """Выводит содержимое папки или имя файла VFS."""
+        flags, target = parse_ls_args(args)
+        try:
+            node = get_node(self.vfs, resolve_path(self.cwd, target))
+        except VFSError as error:
+            raise CommandError(f"ls: {target}: {error}") from None
+        lines = list_dir(node, "l" in flags, "a" in flags)
+        if lines:
+            self._write_output("\n".join(lines))
+        return True
+
+    def _cmd_cd(self, args: list[str]) -> bool:
+        """Меняет текущую папку VFS."""
+        if args[1:]:
+            raise CommandError("cd: слишком много аргументов")
+        target = args[0] if args else "/"
+        parts = resolve_path(self.cwd, target)
+        try:
+            node = get_node(self.vfs, parts)
+        except VFSError as error:
+            raise CommandError(f"cd: {target}: {error}") from None
+        if not isinstance(node, VFSDir):
+            raise CommandError(f"cd: {target}: не каталог")
+        self.cwd = parts
         return True
 
     def _cmd_vfs_save(self, args: list[str]) -> bool:
