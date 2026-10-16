@@ -4,7 +4,8 @@ import tkinter as tk
 from parser import pars_command
 from commands import COMMANDS
 from script import load_script
-from vfs import VFSError, count_nodes, default_vfs, load_vfs, save_vfs
+from vfs import (VFSError, count_nodes, default_vfs, load_vfs, save_vfs,
+                 tree_lines)
 
 
 class TerminalApp(tk.Tk):
@@ -71,6 +72,8 @@ class TerminalApp(tk.Tk):
         dirs, files = count_nodes(self.vfs)
         self._write_output(f"[debug] Загружена VFS {source} "
                            f"(папок: {dirs}, файлов: {files})")
+        for line in ["/"] + tree_lines(self.vfs):
+            self._write_output(f"[debug] {line}")
 
     def on_enter(self, event=None):
         """Выполняет команду из поля ввода."""

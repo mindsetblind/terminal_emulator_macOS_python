@@ -115,3 +115,19 @@ def count_nodes(directory: VFSDir) -> tuple[int, int]:
         else:
             files += 1
     return dirs, files
+
+
+def tree_lines(directory: VFSDir, prefix: str = "") -> list[str]:
+    """Возвращает содержимое папки в виде строк дерева."""
+    lines = []
+    nodes = list(directory.children.values())
+    for node in nodes:
+        is_last = node is nodes[-1]
+        branch = "└── " if is_last else "├── "
+        if isinstance(node, VFSDir):
+            lines.append(f"{prefix}{branch}{node.name}/")
+            indent = "    " if is_last else "│   "
+            lines.extend(tree_lines(node, prefix + indent))
+        else:
+            lines.append(f"{prefix}{branch}{node.name}")
+    return lines

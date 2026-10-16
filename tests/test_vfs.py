@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 from src.vfs import (VFSDir, VFSError, VFSFile, count_nodes, default_vfs,
-                     load_vfs, save_vfs)
+                     load_vfs, save_vfs, tree_lines)
 
 
 class TestVFS(unittest.TestCase):
@@ -86,6 +86,19 @@ class TestVFS(unittest.TestCase):
     def test_save_to_missing_dir(self):
         with self.assertRaises(VFSError):
             save_vfs(default_vfs(), "/no/such/dir/vfs.xml")
+
+    def test_tree_lines(self):
+        root = VFSDir("/")
+        folder = VFSDir("dir")
+        folder.add(VFSFile("inner.txt"))
+        root.add(folder)
+        root.add(VFSFile("last.txt"))
+        self.assertEqual(tree_lines(root), ["├── dir/",
+                                            "│   └── inner.txt",
+                                            "└── last.txt"])
+
+    def test_tree_lines_empty_dir(self):
+        self.assertEqual(tree_lines(VFSDir("/")), [])
 
 
 if __name__ == "__main__":

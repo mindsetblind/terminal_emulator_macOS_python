@@ -202,15 +202,30 @@ cd: команда вызвана с аргументами My Folder
   XML, неверная структура (другой корневой элемент, неизвестный элемент,
   нет атрибута `name`, повторяющееся имя, содержимое не в base64).
 
-После загрузки в окне выводится отладочная строка:
+После загрузки в окне выводится количество папок и файлов и дерево VFS:
 ```
 [debug] Загружена VFS vfs/nested.xml (папок: 6, файлов: 4)
+[debug] /
+[debug] ├── root.txt
+[debug] ├── home/
+[debug] │   └── user/
+[debug] │       ├── todo.txt
+[debug] │       └── projects/
+[debug] │           └── emulator/
+[debug] │               └── main.py
+[debug] ├── etc/
+[debug] │   └── hosts
+[debug] └── tmp/
 ```
 
 Пример ошибки:
 ```
 Ошибка загрузки VFS: неверный формат XML: vfs/broken.xml
 [debug] Загружена VFS по умолчанию (папок: 2, файлов: 1)
+[debug] /
+[debug] └── home/
+[debug]     └── user/
+[debug]         └── readme.txt
 ```
 
 ### Команда `vfs-save`
