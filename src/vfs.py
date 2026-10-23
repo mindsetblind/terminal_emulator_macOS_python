@@ -1,5 +1,5 @@
 import base64
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as et
 from dataclasses import dataclass, field
 
 
@@ -41,10 +41,10 @@ def default_vfs() -> VFSDir:
 def load_vfs(path: str) -> VFSDir:
     """Загружает VFS из XML-файла."""
     try:
-        tree = ET.parse(path)
+        tree = et.parse(path)
     except FileNotFoundError:
         raise VFSError(f"файл не найден: {path}") from None
-    except ET.ParseError:
+    except et.ParseError:
         raise VFSError(f"неверный формат XML: {path}") from None
     except OSError:
         raise VFSError(f"не удалось прочитать файл: {path}") from None
@@ -57,7 +57,7 @@ def load_vfs(path: str) -> VFSDir:
     return root
 
 
-def _fill_dir(directory: VFSDir, element: ET.Element):
+def _fill_dir(directory: VFSDir, element: et.Element):
     """Заполняет папку элементами XML."""
     for child in element:
         name = child.get("name")
@@ -83,24 +83,24 @@ def _decode(text: str | None, name: str) -> bytes:
 
 def save_vfs(root: VFSDir, path: str):
     """Сохраняет VFS в XML-файл в исходном формате."""
-    xml_root = ET.Element("vfs")
+    xml_root = et.Element("vfs")
     _dump_dir(root, xml_root)
-    tree = ET.ElementTree(xml_root)
-    ET.indent(tree)
+    tree = et.ElementTree(xml_root)
+    et.indent(tree)
     try:
         tree.write(path, encoding="utf-8", xml_declaration=True)
     except OSError:
         raise VFSError(f"не удалось записать файл: {path}") from None
 
 
-def _dump_dir(directory: VFSDir, element: ET.Element):
+def _dump_dir(directory: VFSDir, element: et.Element):
     """Записывает содержимое папки в элемент XML."""
     for node in directory.children.values():
         if isinstance(node, VFSDir):
-            child = ET.SubElement(element, "dir", name=node.name)
+            child = et.SubElement(element, "dir", name=node.name)
             _dump_dir(node, child)
         else:
-            child = ET.SubElement(element, "file", name=node.name)
+            child = et.SubElement(element, "file", name=node.name)
             child.text = base64.b64encode(node.content).decode("ascii")
 
 
