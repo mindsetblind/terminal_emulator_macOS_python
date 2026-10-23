@@ -64,6 +64,17 @@ def cmd_vfs_save(args: list[str]) -> str:
     return ""
 
 
+def cmd_touch(args: list[str]) -> str:
+    """Заглушка: создание файла в VFS выполняет gui."""
+    return ""
+
+
+def cmd_mv(args: list[str]) -> str:
+    """Заглушка: перемещение в VFS выполняет gui."""
+    return ""
+
+
 COMMANDS = {"echo": pr_text, "clear": clear, "help": cmd_help,
             "cd": chng_dir, "ls": cmd_list, "exit": cmd_exit,
-            "vfs-save": cmd_vfs_save, "whoami": cmd_whoami}
+            "vfs-save": cmd_vfs_save, "whoami": cmd_whoami,
+            "touch": cmd_touch, "mv": cmd_mv}

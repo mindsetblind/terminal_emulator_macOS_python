@@ -5,8 +5,8 @@ from parser import pars_command
 from commands import COMMANDS, CommandError, parse_ls_args
 from script import load_script
 from vfs import (VFSDir, VFSError, count_nodes, default_vfs, format_path,
-                 get_node, list_dir, load_vfs, resolve_path, save_vfs,
-                 tree_lines)
+                 get_node, list_dir, load_vfs, move, resolve_path, save_vfs,
+                 touch, tree_lines)
 
 
 class TerminalApp(tk.Tk):
@@ -104,7 +104,8 @@ class TerminalApp(tk.Tk):
 
         gui_commands = {"clear": self._cmd_clear, "help": self._cmd_help,
                         "exit": self._cmd_exit, "ls": self._cmd_ls,
-                        "cd": self._cmd_cd, "vfs-save": self._cmd_vfs_save}
+                        "cd": self._cmd_cd, "vfs-save": self._cmd_vfs_save,
+                        "touch": self._cmd_touch, "mv": self._cmd_mv}
         try:
             if command in gui_commands:
                 return gui_commands[command](args)
@@ -159,6 +160,30 @@ class TerminalApp(tk.Tk):
         if not isinstance(node, VFSDir):
             raise CommandError(f"cd: {target}: не каталог")
         self.cwd = parts
+        return True
+
+    def _cmd_touch(self, args: list[str]) -> bool:
+        """Создаёт пустые файлы в VFS."""
+        if not args:
+            raise CommandError("touch: не указан файл")
+        for target in args:
+            try:
+                touch(self.vfs, resolve_path(self.cwd, target))
+            except VFSError as error:
+                raise CommandError(f"touch: {target}: {error}") from None
+        return True
+
+    def _cmd_mv(self, args: list[str]) -> bool:
+        """Перемещает или переименовывает файл или папку в VFS."""
+        if not args[1:] or args[2:]:
+            raise CommandError("mv: нужно указать, что и куда переместить")
+        src = resolve_path(self.cwd, args[0])
+        try:
+            new_path = move(self.vfs, src, resolve_path(self.cwd, args[1]))
+        except VFSError as error:
+            raise CommandError(f"mv: {args[0]}: {error}") from None
+        if self.cwd[:len(src)] == src:
+            self.cwd = new_path + self.cwd[len(src):]
         return True
 
     def _cmd_vfs_save(self, args: list[str]) -> bool:
