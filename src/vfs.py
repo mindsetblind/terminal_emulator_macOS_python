@@ -185,3 +185,62 @@ def _ls_entry(node, long_format: bool) -> str:
     if long_format:
         return f"{kind} {size:>8} {name}"
     return name
+
+
+def _get_dir(root: VFSDir, parts: list[str]) -> VFSDir:
+    """Находит папку по пути, иначе выдаёт ошибку."""
+    node = get_node(root, parts)
+    if not isinstance(node, VFSDir):
+        raise VFSError("не каталог")
+    return node
+
+
+def touch(root: VFSDir, parts: list[str]):
+    """Создаёт пустой файл, если его ещё нет."""
+    if not parts:
+        raise VFSError("нельзя создать файл с таким именем")
+    parent = _get_dir(root, parts[:-1])
+    if parts[-1] not in parent.children:
+        parent.add(VFSFile(parts[-1]))
+
+
+def move(root: VFSDir, src: list[str], dst: list[str]) -> list[str]:
+    """Перемещает или переименовывает узел, возвращает его новый путь."""
+    if not src:
+        raise VFSError("нельзя переместить корень")
+    node = get_node(root, src)
+    target = _resolve_target(root, src, dst)
+    if target == src:
+        raise VFSError("источник и назначение совпадают")
+    if target[:len(src)] == src:
+        raise VFSError("нельзя переместить папку в саму себя")
+    parent = _get_dir(root, target[:-1])
+    _check_replace(parent.children.get(target[-1]), node)
+    del _get_dir(root, src[:-1]).children[src[-1]]
+    node.name = target[-1]
+    parent.children[node.name] = node
+    return target
+
+
+def _resolve_target(root: VFSDir, src: list[str],
+                    dst: list[str]) -> list[str]:
+    """Определяет итоговый путь: в папку назначения или под новым именем."""
+    try:
+        is_dir = isinstance(get_node(root, dst), VFSDir)
+    except VFSError:
+        is_dir = False
+    if is_dir:
+        return dst + [src[-1]]
+    if not dst:
+        raise VFSError("неверный путь назначения")
+    return dst
+
+
+def _check_replace(existing, node):
+    """Проверяет, можно ли заменить существующий узел перемещаемым."""
+    if existing is None:
+        return
+    if isinstance(existing, VFSDir):
+        raise VFSError(f"каталог '{existing.name}' уже существует")
+    if isinstance(node, VFSDir):
+        raise VFSError(f"нельзя заменить файл '{existing.name}' папкой")
