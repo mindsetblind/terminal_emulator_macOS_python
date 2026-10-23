@@ -2,8 +2,8 @@ import os
 import tempfile
 import unittest
 from src.vfs import (VFSDir, VFSError, VFSFile, count_nodes, default_vfs,
-                     format_path, get_node, list_dir, load_vfs, resolve_path,
-                     save_vfs, tree_lines)
+                     format_path, get_node, list_dir, load_vfs, move,
+                     resolve_path, save_vfs, touch, tree_lines)
 
 
 class TestVFS(unittest.TestCase):
@@ -154,6 +154,93 @@ class TestVFSPaths(unittest.TestCase):
     def test_list_dir_file(self):
         node = get_node(self.root, ["home", "b.txt"])
         self.assertEqual(list_dir(node), ["b.txt"])
+
+
+
+class TestVFSChanges(unittest.TestCase):
+
+    def setUp(self):
+        self.root = VFSDir("/")
+        home = VFSDir("home")
+        home.add(VFSFile("a.txt", b"A"))
+        home.add(VFSFile("b.txt", b"B"))
+        home.add(VFSDir("sub"))
+        self.root.add(home)
+        self.root.add(VFSDir("tmp"))
+
+    def _names(self, *parts):
+        """Возвращает имена внутри папки."""
+        return sorted(get_node(self.root, list(parts)).children)
+
+    def test_touch_creates_empty_file(self):
+        touch(self.root, ["tmp", "new.txt"])
+        self.assertEqual(get_node(self.root, ["tmp", "new.txt"]).content, b"")
+
+    def test_touch_existing_file_keeps_content(self):
+        touch(self.root, ["home", "a.txt"])
+        self.assertEqual(get_node(self.root, ["home", "a.txt"]).content, b"A")
+
+    def test_touch_missing_dir(self):
+        with self.assertRaises(VFSError):
+            touch(self.root, ["nope", "x.txt"])
+
+    def test_touch_inside_file(self):
+        with self.assertRaises(VFSError):
+            touch(self.root, ["home", "a.txt", "x"])
+
+    def test_touch_root(self):
+        with self.assertRaises(VFSError):
+            touch(self.root, [])
+
+    def test_mv_rename(self):
+        new_path = move(self.root, ["home", "a.txt"], ["home", "c.txt"])
+        self.assertEqual(new_path, ["home", "c.txt"])
+        self.assertEqual(self._names("home"), ["b.txt", "c.txt", "sub"])
+        self.assertEqual(get_node(self.root, new_path).name, "c.txt")
+
+    def test_mv_into_dir(self):
+        move(self.root, ["home", "a.txt"], ["tmp"])
+        self.assertEqual(self._names("tmp"), ["a.txt"])
+        self.assertNotIn("a.txt", self._names("home"))
+
+    def test_mv_dir_with_content(self):
+        move(self.root, ["home"], ["tmp", "house"])
+        self.assertEqual(self._names("tmp", "house"),
+                         ["a.txt", "b.txt", "sub"])
+
+    def test_mv_overwrites_file(self):
+        move(self.root, ["home", "a.txt"], ["home", "b.txt"])
+        self.assertEqual(get_node(self.root, ["home", "b.txt"]).content, b"A")
+        self.assertEqual(self._names("home"), ["b.txt", "sub"])
+
+    def test_mv_missing_source(self):
+        with self.assertRaises(VFSError):
+            move(self.root, ["nope"], ["tmp"])
+
+    def test_mv_missing_target_dir(self):
+        with self.assertRaises(VFSError):
+            move(self.root, ["home", "a.txt"], ["nope", "x.txt"])
+
+    def test_mv_dir_into_itself(self):
+        with self.assertRaises(VFSError):
+            move(self.root, ["home"], ["home", "sub"])
+
+    def test_mv_same_path(self):
+        with self.assertRaises(VFSError):
+            move(self.root, ["home", "a.txt"], ["home", "a.txt"])
+
+    def test_mv_root(self):
+        with self.assertRaises(VFSError):
+            move(self.root, [], ["tmp"])
+
+    def test_mv_dir_over_file(self):
+        with self.assertRaises(VFSError):
+            move(self.root, ["home", "sub"], ["home", "a.txt"])
+
+    def test_mv_file_over_dir_with_same_name(self):
+        touch(self.root, ["tmp", "sub"])
+        with self.assertRaises(VFSError):
+            move(self.root, ["tmp", "sub"], ["home"])
 
 
 if __name__ == "__main__":

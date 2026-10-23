@@ -1,0 +1,23 @@
+# Стартовый скрипт этапа 5: touch и mv на VFS nested.xml
+# Все изменения происходят только в памяти, файл nested.xml не меняется
+ls
+touch new.txt
+touch tmp/a.txt tmp/b.txt
+touch new.txt  # файл уже есть: содержимое не меняется
+ls -l
+ls tmp
+mv new.txt renamed.txt
+mv renamed.txt home/user
+ls home/user
+mv tmp/a.txt home/user/projects/notes.txt
+ls -l home/user/projects
+mv tmp/b.txt root.txt  # файл заменяет существующий
+ls -l
+cd home/user/projects
+mv /home/user/projects /etc
+ls
+cd /
+ls etc
+vfs-save /tmp/emulator_stage5.xml
+mv nope.txt tmp
+echo эта строка не выполнится
